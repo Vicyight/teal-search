@@ -1,223 +1,610 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TEAL Literature Search</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#f5f6f8;color:#202735;
-font:16px/1.6 system-ui,-apple-system,sans-serif}
-main{max-width:1000px;margin:auto;padding:40px 20px}
-h1{margin:0;color:#433267}
-.subtitle{color:#626978;margin-top:6px}
-.panel,article{background:white;border:1px solid #dde0e6;
-border-radius:12px;padding:20px;margin:16px 0}
-.controls{display:flex;gap:12px;flex-wrap:wrap}
-input,select,button{font:inherit;border:1px solid #bbc1cd;
-border-radius:7px;padding:10px}
-input[type=search]{flex:1;min-width:220px}
-button{background:#433267;color:white;cursor:pointer}
-button:disabled{opacity:.4;cursor:default}
-h2{font-size:20px;margin:0 0 6px}
-.meta{color:#626978}
-a{color:#433267}
-.links{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px}
-dl{display:grid;grid-template-columns:150px 1fr;gap:8px}
-dt{font-weight:600}dd{margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
-nav{display:flex;align-items:center;justify-content:center;gap:16px}
-summary{cursor:pointer;margin-top:12px;color:#433267}
-#status{color:#626978}
-@media(max-width:550px){dl{grid-template-columns:1fr}dd{margin-bottom:8px}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TEAL Literature Search | Korean Literature in Translation</title>
+  <meta name="description" content="Explore over 6,000 Korean literature translation records. Search English and Korean titles, authors, translators, publication years and genres.">
+  <style>
+    :root {
+      --purple: #4b2e83;
+      --deep: #30204c;
+      --gold: #b7a57a;
+      --cream: #e8e3d3;
+      --ink: #292534;
+      --muted: #625b6c;
+      --line: #ded9d0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      border-top: 7px solid var(--purple);
+      background: #f7f5ef;
+      color: var(--ink);
+      font: 16px/1.6 system-ui, sans-serif;
+    }
+    main { max-width: 1100px; margin: auto; padding: 32px 24px 60px; }
+    .hero {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      padding: 38px;
+      color: white;
+      background: var(--deep);
+      border-bottom: 5px solid var(--gold);
+      border-radius: 6px;
+    }
+    .eyebrow {
+      color: var(--cream);
+      font-size: .76rem;
+      font-weight: 650;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    h1 { margin: 0; font: 600 clamp(2rem, 5vw, 3.2rem)/1.12 Georgia, serif; }
+    .korean {
+      color: var(--cream);
+      font: 1.35rem/1.5 "AppleMyungjo", "Batang", serif;
+    }
+    .hero p:last-child { margin-bottom: 0; }
+    .hero-copy {
+      position: relative;
+      z-index: 1;
+      max-width: 640px;
+    }
+    .lattice {
+      position: absolute;
+      inset: 0 0 0 auto;
+      width: 60%;
+      height: 100%;
+      color: var(--gold);
+      opacity: .65;
+      pointer-events: none;
+      -webkit-mask-image: linear-gradient(to right, transparent 8%, black 100%);
+      mask-image: linear-gradient(to right, transparent 8%, black 100%);
+    }
+    .panel, article {
+      margin: 18px 0;
+      padding: 22px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .controls, .actions, .links, nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      gap: 12px;
+    }
+    label { display: grid; gap: 4px; font-size: .88rem; font-weight: 600; }
+    .search-field { flex: 1 1 240px; min-width: 0; }
+    input, select, button {
+      padding: 9px 12px;
+      border: 1px solid #b8afc3;
+      border-radius: 5px;
+      font: inherit;
+    }
+    input, select { min-width: 0; width: 100%; background: white; color: var(--ink); }
+    button { background: var(--purple); color: white; cursor: pointer; }
+    button.secondary { background: white; color: var(--purple); }
+    button:disabled { opacity: .5; cursor: default; }
+    :focus-visible { outline: 3px solid #8862c0; outline-offset: 3px; }
+    .actions { margin-top: 16px; }
+    #filePicker { margin-bottom: 18px; }
+    #filePicker input { max-width: 360px; }
+    #status, #advancedSummary, .meta { color: var(--muted); font-size: .9rem; }
+    article { border-left: 4px solid var(--gold); overflow-wrap: anywhere; }
+    article h2 { margin: 0; color: var(--deep); font: 600 1.45rem/1.4 Georgia, "AppleMyungjo", "Batang", serif; }
+    .meta { margin: 8px 0; }
+    a, summary { color: var(--purple); }
+    summary { cursor: pointer; }
+    .links { margin-top: 12px; font-size: .88rem; }
+    dl { display: grid; grid-template-columns: 150px 1fr; gap: 8px 18px; }
+    dt { font-weight: 600; }
+    dd { margin: 0; white-space: pre-wrap; }
+    nav { align-items: center; justify-content: center; margin-top: 24px; }
+    dialog {
+      width: min(760px, calc(100% - 24px));
+      max-height: 90vh;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+    }
+    dialog::backdrop { background: #20133085; }
+    .dialog-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--purple);
+      color: white;
+      padding: 14px 22px;
+      border-bottom: 4px solid var(--gold);
+    }
+    .dialog-heading h2 { margin: 0; font: 600 1.55rem Georgia, serif; }
+    form { padding: 20px 22px; }
+    .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .wide { grid-column: 1 / -1; }
+    .dialog-actions { justify-content: flex-end; }
+    @media (max-width: 600px) {
+      main { padding: 16px 12px 36px; }
+      .hero { padding: 24px; }
+      .lattice { width: 75%; opacity: .42; }
+      .panel, article { padding: 16px; }
+      .fields, dl { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
 <main>
-<h1>TEAL Literature Search</h1>
-<p class="subtitle">Search titles, authors, translators and publication information.</p>
+  <header class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">University of Washington · Tateuchi East Asia Library</p>
+      <h1>TEAL Literature Search</h1>
+      <p class="korean" lang="ko">한국문학 · 세계와 만나다</p>
+      <p>Discover Korean literature in translation. Search titles, authors, translators and publication information.</p>
+    </div>
+    <svg class="lattice" aria-hidden="true" fill="none">
+      <defs>
+        <pattern id="latticePattern" width="80" height="80" patternUnits="userSpaceOnUse">
+          <path d="M0 0H80V80H0Z M40 0L80 40L40 80L0 40Z M40 18L62 40L40 62L18 40Z M40 0V18 M62 40H80 M40 62V80 M0 40H18"
+                stroke="currentColor" stroke-width="1.3"/>
+          <path d="M40 32L48 40L40 48L32 40Z" fill="currentColor"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#latticePattern)"/>
+    </svg>
+  </header>
 
-<section class="panel">
-<label for="file">Open the catalogue CSV file:</label>
-<input id="file" type="file" accept=".csv,text/csv">
-<p class="subtitle">For local use, select data.csv. On the published website,
-the catalogue loads automatically.</p>
-<div class="controls">
-<input id="query" type="search" aria-label="Search catalogue"
-placeholder="Search in English or Korean…">
-<select id="genre" aria-label="Filter by genre">
-<option value="">All genres</option>
-</select>
-</div>
-</section>
+  <section class="panel" aria-label="Catalogue search">
+    <div id="filePicker" hidden>
+      <label>Open the catalogue CSV file
+        <input id="file" type="file" accept=".csv,text/csv">
+      </label>
+    </div>
+    <div class="controls">
+      <label class="search-field">Keyword
+        <input id="query" type="search" placeholder="Search in English or Korean…">
+      </label>
+      <label>Genre
+        <select id="genre"><option value="">All genres</option></select>
+      </label>
+      <label>Sort by
+        <select id="sortBy">
+          <option value="">Catalogue order</option>
+          <option>Translation Title</option>
+          <option>Korean Title</option>
+          <option value="Author (Eng)">Author (English)</option>
+          <option value="Author (Kor)">Author (Korean)</option>
+          <option>Translator</option>
+          <option value="Year">Publication year</option>
+          <option value="Source">Source title</option>
+          <option>Publisher</option>
+          <option>Genre</option>
+        </select>
+      </label>
+      <label>Order
+        <select id="sortOrder" disabled>
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+      </label>
+    </div>
+    <div class="actions">
+      <button id="advanced" class="secondary" type="button">Advanced Search</button>
+    </div>
+    <p id="advancedSummary" hidden></p>
+  </section>
 
-<p id="status" role="status">Select data.csv to begin.</p>
-<section id="results" aria-label="Search results"></section>
-<nav aria-label="Result pages">
-<button id="prev">Previous</button>
-<span id="page"></span>
-<button id="next">Next</button>
-</nav>
+  <p id="status" role="status"></p>
+  <section id="results" aria-label="Search results"></section>
+  <nav aria-label="Result pages">
+    <button id="prev" type="button" disabled>Previous</button>
+    <span id="page"></span>
+    <button id="next" type="button" disabled>Next</button>
+  </nav>
 </main>
+
+<dialog id="advancedDialog" aria-labelledby="advancedTitle">
+  <div class="dialog-heading">
+    <h2 id="advancedTitle">Advanced Search</h2>
+    <button id="closeAdvanced" type="button" aria-label="Close advanced search">×</button>
+  </div>
+  <form id="advancedForm">
+    <div class="fields">
+      <label class="wide">Keyword <input name="keyword" type="search"></label>
+      <label>Author Name (English) <input name="authorEng"></label>
+      <label>Author Name (Korean) <input name="authorKor" lang="ko"></label>
+      <label>Translation Title <input name="titleEng"></label>
+      <label>Korean Title <input name="titleKor" lang="ko"></label>
+      <label class="wide">Translator <input name="translator"></label>
+      <label>From Published Year <input name="yearFrom" type="number" min="1" max="9999"></label>
+      <label>To Published Year <input name="yearTo" type="number" min="1" max="9999"></label>
+      <label>Exact Published Year <input name="yearExact" type="number" min="1" max="9999"></label>
+      <label>Genre <select name="genre"></select></label>
+      <label class="wide">Source Title <input name="source"></label>
+      <label class="wide">Publisher <input name="publisher"></label>
+    </div>
+    <div class="actions dialog-actions">
+      <button id="clearAdvanced" class="secondary" type="button">Clear Advanced Filters</button>
+      <button type="submit">Search Catalogue</button>
+    </div>
+  </form>
+</dialog>
 
 <script>
 "use strict";
-const $ = id => document.getElementById(id);
-let records = [], matches = [], current = 1;
-const size = 25;
-const normalize = value => String(value ?? "")
-  .normalize("NFKC").toLocaleLowerCase().trim();
 
-/* Supports quoted commas, escaped quotes and multiline CSV cells. */
+const $ = id => document.getElementById(id);
+const pageSize = 25;
+const textFields = {
+  authorEng: "Author (Eng)",
+  authorKor: "Author (Kor)",
+  titleEng: "Translation Title",
+  titleKor: "Korean Title",
+  translator: "Translator",
+  source: "Source",
+  publisher: "Publisher"
+};
+const yearFields = ["yearFrom", "yearTo", "yearExact"];
+const advancedFields = [...Object.keys(textFields), ...yearFields];
+const form = $("advancedForm");
+const field = name => form.elements.namedItem(name);
+const collators = {
+  en: new Intl.Collator("en", { numeric: true, sensitivity: "base" }),
+  ko: new Intl.Collator("ko", { numeric: true, sensitivity: "base" })
+};
+
+let records = [];
+let results = [];
+let page = 1;
+let loaded = false;
+let loadMessage = "";
+let filters = {};
+
+function normalize(value) {
+  return String(value ?? "").normalize("NFKC").toLowerCase().trim()
+    .replace(/(\p{Script=Hangul})\s+(?=\p{Script=Hangul})/gu, "$1");
+}
+
+function words(value) {
+  return normalize(value).split(/\s+/).filter(Boolean);
+}
+
 function parseCSV(text) {
   text = text.replace(/^\uFEFF/, "");
   const rows = [];
-  let row = [], cell = "", quoted = false;
+  let row = [];
+  let cell = "";
+  let quoted = false;
+
   for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (c === '"') {
-      if (quoted && text[i + 1] === '"') {
-        cell += '"'; i++;
-      } else quoted = !quoted;
-    } else if (c === "," && !quoted) {
-      row.push(cell); cell = "";
-    } else if ((c === "\n" || c === "\r") && !quoted) {
-      if (c === "\r" && text[i + 1] === "\n") i++;
+    const char = text[i];
+    if (quoted) {
+      if (char === '"' && text[i + 1] === '"') {
+        cell += '"';
+        i++;
+      } else if (char === '"') {
+        quoted = false;
+      } else {
+        cell += char;
+      }
+    } else if (char === '"' && cell === "") {
+      quoted = true;
+    } else if (char === ",") {
       row.push(cell);
-      if (row.some(v => v.trim())) rows.push(row);
-      row = []; cell = "";
-    } else cell += c;
+      cell = "";
+    } else if (char === "\n" || char === "\r") {
+      if (char === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell);
+      if (row.some(value => value.trim())) rows.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += char;
+    }
   }
-  if (quoted) throw new Error("Unclosed quotation mark in CSV.");
+
+  if (quoted) throw new Error("The CSV contains an unclosed quotation mark.");
   row.push(cell);
-  if (row.some(v => v.trim())) rows.push(row);
+  if (row.some(value => value.trim())) rows.push(row);
   return rows;
 }
 
-function load(text) {
+function parseYear(value) {
+  return /^\d{4}$/.test(value) && Number(value) > 0 ? Number(value) : null;
+}
+
+function loadCatalogue(text) {
   const rows = parseCSV(text);
-  if (rows.length < 2) throw new Error("CSV has no records.");
-  const headers = rows.shift().map(h => h.trim());
-  if (!headers.includes("Translation Title")) {
-    throw new Error("Missing Translation Title column.");
-  }
-  const loaded = rows.map((row, index) => {
+  if (rows.length < 2) throw new Error("The CSV has no records.");
+  const headers = rows.shift().map(header => header.trim());
+  const required = [...Object.values(textFields), "Year", "Genre"];
+  const missing = required.filter(header => !headers.includes(header));
+  if (missing.length) throw new Error("Missing columns: " + missing.join(", "));
+
+  const nextRecords = rows.map((row, index) => {
     if (row.length !== headers.length) {
-      throw new Error("Unexpected column count at record " + (index + 1));
+      throw new Error("Unexpected column count in record " + (index + 1) + ".");
     }
-    const data = Object.fromEntries(
-      headers.map((h, i) => [h, row[i].trim()])
-    );
-    return {
-      data,
-      search: normalize(headers
-        .filter(h => h !== "Export Row" && !h.endsWith("URL"))
-        .map(h => data[h]).join(" "))
-    };
+    const data = Object.fromEntries(headers.map((header, i) => [header, row[i].trim()]));
+    const searchable = headers
+      .filter(header => header !== "Export Row" && !header.endsWith("URL"))
+      .map(header => normalize(data[header]));
+    return { data, searchable, year: parseYear(data.Year) };
   });
-  records = loaded;
-  $("genre").replaceChildren(new Option("All genres", ""));
-  [...new Set(records.map(r => r.data.Genre).filter(Boolean))]
-    .sort((a,b) => a.localeCompare(b))
-    .forEach(g => $("genre").add(new Option(g, g)));
+
+  const selectedGenre = $("genre").value;
+  const genres = [...new Set(nextRecords.map(record => record.data.Genre).filter(Boolean))]
+    .sort(collators.en.compare);
+  $("genre").replaceChildren(
+    new Option("All genres", ""),
+    ...genres.map(genre => new Option(genre, genre))
+  );
+  $("genre").value = genres.includes(selectedGenre) ? selectedGenre : "";
+  records = nextRecords;
+  loaded = true;
+  loadMessage = "";
   search();
 }
 
+function matchesAdvanced(record) {
+  for (const [name, column] of Object.entries(textFields)) {
+    const terms = filters[name];
+    if (terms) {
+      const value = normalize(record.data[column]);
+      if (!terms.every(term => value.includes(term))) return false;
+    }
+  }
+
+  const { yearFrom, yearTo, yearExact } = filters;
+  if (yearFrom || yearTo || yearExact) {
+    if (record.year === null) return false;
+    if (yearFrom && record.year < yearFrom) return false;
+    if (yearTo && record.year > yearTo) return false;
+    if (yearExact && record.year !== yearExact) return false;
+  }
+  return true;
+}
+
+function sortResults(items) {
+  const column = $("sortBy").value;
+  if (!column) return items;
+
+  const direction = $("sortOrder").value === "desc" ? -1 : 1;
+  const byYear = column === "Year";
+  const collator = column === "Korean Title" || column === "Author (Kor)"
+    ? collators.ko : collators.en;
+
+  return items.sort((a, b) => {
+    const left = byYear ? a.year : a.data[column] || null;
+    const right = byYear ? b.year : b.data[column] || null;
+    if (left === null || right === null) {
+      return Number(left === null) - Number(right === null);
+    }
+    return direction * (byYear ? left - right : collator.compare(left, right));
+  });
+}
+
 function search() {
-  const terms = normalize($("query").value).split(/\s+/).filter(Boolean);
+  const terms = words($("query").value);
   const genre = $("genre").value;
-  matches = records.filter(r =>
-    (!genre || r.data.Genre === genre) &&
-    terms.every(term => r.search.includes(term))
-  );
-  current = 1;
+  $("sortOrder").disabled = !$("sortBy").value;
+
+  results = sortResults(records.filter(record =>
+    (!genre || record.data.Genre === genre) &&
+    terms.every(term => record.searchable.some(value => value.includes(term))) &&
+    matchesAdvanced(record)
+  ));
+
+  const count = Object.keys(filters).length;
+  $("advanced").textContent = count ? "Advanced Search (" + count + ")" : "Advanced Search";
+  $("advancedSummary").hidden = count === 0;
+  $("advancedSummary").textContent = count
+    ? count + " advanced filter" + (count === 1 ? "" : "s") + " active."
+    : "";
+  page = 1;
   render();
 }
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
-  node.textContent = text;
+  if (text !== undefined) node.textContent = text;
   if (className) node.className = className;
   return node;
 }
 
 function safeURL(value) {
+  if (!value) return null;
   try {
     const url = new URL(value);
-    return ["http:", "https:"].includes(url.protocol) ? url.href : null;
-  } catch { return null; }
+    return url.protocol === "https:" || url.protocol === "http:" ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function addLink(container, label, address) {
+  const url = safeURL(address);
+  if (!url) return;
+  const link = element("a", label);
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  container.append(link);
+}
+
+function createRecordCard(data) {
+  const card = element("article");
+  const title = data["Translation Title"] || data["Korean Title"];
+  const author = data["Author (Eng)"] || data["Author (Kor)"];
+  const heading = element("h2", title || "Untitled record");
+  if (!data["Translation Title"] && data["Korean Title"]) heading.lang = "ko";
+  card.append(heading);
+
+  if (data["Korean Title"] && data["Korean Title"] !== title) {
+    const koreanTitle = element("div", data["Korean Title"]);
+    koreanTitle.lang = "ko";
+    card.append(koreanTitle);
+  }
+
+  const meta = [data["Author (Eng)"], data["Author (Kor)"], data.Year, data.Genre]
+    .filter(Boolean).join(" · ");
+  if (meta) card.append(element("p", meta, "meta"));
+
+  const details = element("details");
+  const list = element("dl");
+  details.append(element("summary", "View record details"));
+  for (const [key, value] of Object.entries(data)) {
+    if (!value || key === "Export Row" || key.endsWith("URL")) continue;
+    const description = element("dd", value);
+    if (key === "Korean Title" || key === "Author (Kor)") description.lang = "ko";
+    list.append(element("dt", key), description);
+  }
+  details.append(list);
+  card.append(details);
+
+  const links = element("div", undefined, "links");
+  if (title) {
+    const query = encodeURIComponent([title, author].filter(Boolean).join(" "));
+    addLink(links, "Search WorldCat", "https://search.worldcat.org/search?q=" + query);
+    addLink(links, "Search Google Books", "https://www.google.com/search?tbm=bks&q=" + query);
+    addLink(links, "Search Google", "https://www.google.com/search?q=" + query);
+  }
+  const sourceURL = safeURL(data["Publisher URL"]) || safeURL(data.Publisher) || safeURL(data.Source);
+  addLink(links, "Visit source", sourceURL);
+  if (links.children.length) card.append(links);
+  return card;
 }
 
 function render() {
-  const pages = Math.max(1, Math.ceil(matches.length / size));
-  $("results").replaceChildren();
-  $("status").textContent = records.length
-    ? `${matches.length.toLocaleString()} results · ${records.length.toLocaleString()} records`
-    : "Select data.csv to begin.";
+  const pageCount = Math.ceil(results.length / pageSize);
+  const start = (page - 1) * pageSize;
+  $("results").replaceChildren(
+    ...results.slice(start, start + pageSize).map(record => createRecordCard(record.data))
+  );
 
-  matches.slice((current - 1) * size, current * size).forEach(({data:d}) => {
-    const card = document.createElement("article");
-    card.append(element("h2",
-      d["Translation Title"] || d["Korean Title"] || "Untitled record"));
-    if (d["Korean Title"] && d["Korean Title"] !== d["Translation Title"]) {
-      card.append(element("div", d["Korean Title"]));
-    }
-    card.append(element("div", [
-      d["Author (Eng)"], d["Author (Kor)"], d.Year, d.Genre
-    ].filter(Boolean).join(" · "), "meta"));
-
-    const details = document.createElement("details");
-    details.append(element("summary", "View record details"));
-    const list = document.createElement("dl");
-    Object.entries(d).forEach(([key, value]) => {
-      if (!value || key === "Export Row" || key.endsWith("URL")) return;
-      list.append(element("dt", key), element("dd", value));
-    });
-    details.append(list);
-    card.append(details);
-
-    const links = element("div", "", "links");
-    ["WorldCat URL", "Google Books URL", "Publisher URL"].forEach(key => {
-      const url = safeURL(d[key]);
-      if (!url) return;
-      const a = element("a", key.replace(" URL", ""));
-      a.href = url;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      links.append(a);
-    });
-    card.append(links);
-    $("results").append(card);
-  });
-
-  if (records.length && !matches.length) {
+  $("status").textContent = loadMessage || (
+    loaded
+      ? results.length.toLocaleString() + " results · " + records.length.toLocaleString() + " records"
+      : ""
+  );
+  if (loaded && results.length === 0) {
     $("results").append(element("p", "No matching records found."));
   }
-  $("page").textContent = `${current} / ${pages}`;
-  $("prev").disabled = current <= 1;
-  $("next").disabled = current >= pages;
+  $("page").textContent = pageCount ? page + " / " + pageCount : "";
+  $("prev").disabled = page <= 1;
+  $("next").disabled = page >= pageCount;
 }
+
+function clearYearValidation() {
+  field("yearTo").setCustomValidity("");
+  field("yearExact").setCustomValidity("");
+}
+
+function populateAdvancedForm() {
+  form.reset();
+  clearYearValidation();
+  field("keyword").value = $("query").value;
+  field("genre").replaceChildren(
+    ...Array.from($("genre").options, option => new Option(option.text, option.value))
+  );
+  field("genre").value = $("genre").value;
+  for (const name of advancedFields) {
+    if (filters[name]) {
+      field(name).value = field(name).dataset.appliedValue || "";
+    }
+  }
+}
+
+$("advanced").addEventListener("click", () => {
+  populateAdvancedForm();
+  $("advancedDialog").showModal();
+});
+$("closeAdvanced").addEventListener("click", () => $("advancedDialog").close());
+form.addEventListener("input", clearYearValidation);
+form.addEventListener("submit", event => {
+  event.preventDefault();
+  clearYearValidation();
+
+  const from = Number(field("yearFrom").value);
+  const to = Number(field("yearTo").value);
+  const exact = Number(field("yearExact").value);
+  if (from && to && from > to) {
+    field("yearTo").setCustomValidity("End year must be the same as or later than start year.");
+    form.reportValidity();
+    return;
+  }
+  if (exact && ((from && exact < from) || (to && exact > to))) {
+    field("yearExact").setCustomValidity("Exact year must fall within the selected range.");
+    form.reportValidity();
+    return;
+  }
+
+  filters = {};
+  for (const name of advancedFields) {
+    const value = field(name).value.trim();
+    if (!value) continue;
+    field(name).dataset.appliedValue = value;
+    filters[name] = yearFields.includes(name) ? Number(value) : words(value);
+  }
+  $("query").value = field("keyword").value.trim();
+  $("genre").value = field("genre").value;
+  search();
+  $("advancedDialog").close();
+});
+
+$("clearAdvanced").addEventListener("click", () => {
+  filters = {};
+  populateAdvancedForm();
+  search();
+});
+$("query").addEventListener("input", search);
+for (const id of ["genre", "sortBy", "sortOrder"]) {
+  $(id).addEventListener("change", search);
+}
+$("prev").addEventListener("click", () => {
+  if (page > 1) page--;
+  render();
+});
+$("next").addEventListener("click", () => {
+  if (page * pageSize < results.length) page++;
+  render();
+});
 
 $("file").addEventListener("change", async event => {
   const file = event.target.files[0];
   if (!file) return;
-  try { load(await file.text()); }
-  catch (error) { $("status").textContent = "Unable to load CSV: " + error.message; }
+  try {
+    loadCatalogue(await file.text());
+  } catch (error) {
+    loadMessage = "Unable to load CSV. " + error.message;
+    render();
+  }
 });
-$("query").addEventListener("input", search);
-$("genre").addEventListener("change", search);
-$("prev").onclick = () => { current--; render(); };
-$("next").onclick = () => { current++; render(); };
-render();
 
-if (location.protocol === "http:" || location.protocol === "https:") {
-  $("status").textContent = "Loading catalogue…";
-  fetch("./data.csv").then(response => {
-    if (!response.ok) throw new Error("Catalogue unavailable.");
-    return response.text();
-  }).then(load).catch(() => {
-    $("status").textContent = "Automatic loading failed. Select data.csv above.";
-  });
+async function start() {
+  if (location.protocol === "file:") {
+    $("filePicker").hidden = false;
+    loadMessage = "Select data.csv to begin.";
+    render();
+    return;
+  }
+
+  loadMessage = "Loading catalogue…";
+  render();
+  try {
+    const response = await fetch("./data.csv");
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    loadCatalogue(await response.text());
+  } catch (error) {
+    $("filePicker").hidden = false;
+    loadMessage = "Automatic loading failed. Select data.csv above. " + error.message;
+    render();
+  }
 }
+start();
 </script>
 </body>
 </html>
