@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TEAL Literature Search</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f5f6f8;color:#202735;
+font:16px/1.6 system-ui,-apple-system,sans-serif}
+main{max-width:1000px;margin:auto;padding:40px 20px}
+h1{margin:0;color:#433267}
+.subtitle{color:#626978;margin-top:6px}
+.panel,article{background:white;border:1px solid #dde0e6;
+border-radius:12px;padding:20px;margin:16px 0}
+.controls{display:flex;gap:12px;flex-wrap:wrap}
+input,select,button{font:inherit;border:1px solid #bbc1cd;
+border-radius:7px;padding:10px}
+input[type=search]{flex:1;min-width:220px}
+button{background:#433267;color:white;cursor:pointer}
+button:disabled{opacity:.4;cursor:default}
+h2{font-size:20px;margin:0 0 6px}
+.meta{color:#626978}
+a{color:#433267}
+.links{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px}
+dl{display:grid;grid-template-columns:150px 1fr;gap:8px}
+dt{font-weight:600}dd{margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+nav{display:flex;align-items:center;justify-content:center;gap:16px}
+summary{cursor:pointer;margin-top:12px;color:#433267}
+#status{color:#626978}
+@media(max-width:550px){dl{grid-template-columns:1fr}dd{margin-bottom:8px}}
+</style>
+</head>
+<body>
+<main>
+<h1>TEAL Literature Search</h1>
+<p class="subtitle">Search titles, authors, translators and publication information.</p>
+
+<section class="panel">
+<label for="file">Open the catalogue CSV file:</label>
+<input id="file" type="file" accept=".csv,text/csv">
+<p class="subtitle">For local use, select data.csv. On the published website,
+the catalogue loads automatically.</p>
+<div class="controls">
+<input id="query" type="search" aria-label="Search catalogue"
+placeholder="Search in English or Korean…">
+<select id="genre" aria-label="Filter by genre">
+<option value="">All genres</option>
+</select>
+</div>
+</section>
+
+<p id="status" role="status">Select data.csv to begin.</p>
+<section id="results" aria-label="Search results"></section>
+<nav aria-label="Result pages">
+<button id="prev">Previous</button>
+<span id="page"></span>
+<button id="next">Next</button>
+</nav>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+let records = [], matches = [], current = 1;
+const size = 25;
+const normalize = value => String(value ?? "")
+  .normalize("NFKC").toLocaleLowerCase().trim();
+
+/* Supports quoted commas, escaped quotes and multiline CSV cells. */
+function parseCSV(text) {
+  text = text.replace(/^\uFEFF/, "");
+  const rows = [];
+  let row = [], cell = "", quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '"') {
+      if (quoted && text[i + 1] === '"') {
+        cell += '"'; i++;
+      } else quoted = !quoted;
+    } else if (c === "," && !quoted) {
+      row.push(cell); cell = "";
+    } else if ((c === "\n" || c === "\r") && !quoted) {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell);
+      if (row.some(v => v.trim())) rows.push(row);
+      row = []; cell = "";
+    } else cell += c;
+  }
+  if (quoted) throw new Error("Unclosed quotation mark in CSV.");
+  row.push(cell);
+  if (row.some(v => v.trim())) rows.push(row);
+  return rows;
+}
+
+function load(text) {
+  const rows = parseCSV(text);
+  if (rows.length < 2) throw new Error("CSV has no records.");
+  const headers = rows.shift().map(h => h.trim());
+  if (!headers.includes("Translation Title")) {
+    throw new Error("Missing Translation Title column.");
+  }
+  const loaded = rows.map((row, index) => {
+    if (row.length !== headers.length) {
+      throw new Error("Unexpected column count at record " + (index + 1));
+    }
+    const data = Object.fromEntries(
+      headers.map((h, i) => [h, row[i].trim()])
+    );
+    return {
+      data,
+      search: normalize(headers
+        .filter(h => h !== "Export Row" && !h.endsWith("URL"))
+        .map(h => data[h]).join(" "))
+    };
+  });
+  records = loaded;
+  $("genre").replaceChildren(new Option("All genres", ""));
+  [...new Set(records.map(r => r.data.Genre).filter(Boolean))]
+    .sort((a,b) => a.localeCompare(b))
+    .forEach(g => $("genre").add(new Option(g, g)));
+  search();
+}
+
+function search() {
+  const terms = normalize($("query").value).split(/\s+/).filter(Boolean);
+  const genre = $("genre").value;
+  matches = records.filter(r =>
+    (!genre || r.data.Genre === genre) &&
+    terms.every(term => r.search.includes(term))
+  );
+  current = 1;
+  render();
+}
+
+function element(tag, text, className) {
+  const node = document.createElement(tag);
+  node.textContent = text;
+  if (className) node.className = className;
+  return node;
+}
+
+function safeURL(value) {
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : null;
+  } catch { return null; }
+}
+
+function render() {
+  const pages = Math.max(1, Math.ceil(matches.length / size));
+  $("results").replaceChildren();
+  $("status").textContent = records.length
+    ? `${matches.length.toLocaleString()} results · ${records.length.toLocaleString()} records`
+    : "Select data.csv to begin.";
+
+  matches.slice((current - 1) * size, current * size).forEach(({data:d}) => {
+    const card = document.createElement("article");
+    card.append(element("h2",
+      d["Translation Title"] || d["Korean Title"] || "Untitled record"));
+    if (d["Korean Title"] && d["Korean Title"] !== d["Translation Title"]) {
+      card.append(element("div", d["Korean Title"]));
+    }
+    card.append(element("div", [
+      d["Author (Eng)"], d["Author (Kor)"], d.Year, d.Genre
+    ].filter(Boolean).join(" · "), "meta"));
+
+    const details = document.createElement("details");
+    details.append(element("summary", "View record details"));
+    const list = document.createElement("dl");
+    Object.entries(d).forEach(([key, value]) => {
+      if (!value || key === "Export Row" || key.endsWith("URL")) return;
+      list.append(element("dt", key), element("dd", value));
+    });
+    details.append(list);
+    card.append(details);
+
+    const links = element("div", "", "links");
+    ["WorldCat URL", "Google Books URL", "Publisher URL"].forEach(key => {
+      const url = safeURL(d[key]);
+      if (!url) return;
+      const a = element("a", key.replace(" URL", ""));
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      links.append(a);
+    });
+    card.append(links);
+    $("results").append(card);
+  });
+
+  if (records.length && !matches.length) {
+    $("results").append(element("p", "No matching records found."));
+  }
+  $("page").textContent = `${current} / ${pages}`;
+  $("prev").disabled = current <= 1;
+  $("next").disabled = current >= pages;
+}
+
+$("file").addEventListener("change", async event => {
+  const file = event.target.files[0];
+  if (!file) return;
+  try { load(await file.text()); }
+  catch (error) { $("status").textContent = "Unable to load CSV: " + error.message; }
+});
+$("query").addEventListener("input", search);
+$("genre").addEventListener("change", search);
+$("prev").onclick = () => { current--; render(); };
+$("next").onclick = () => { current++; render(); };
+render();
+
+if (location.protocol === "http:" || location.protocol === "https:") {
+  $("status").textContent = "Loading catalogue…";
+  fetch("./data.csv").then(response => {
+    if (!response.ok) throw new Error("Catalogue unavailable.");
+    return response.text();
+  }).then(load).catch(() => {
+    $("status").textContent = "Automatic loading failed. Select data.csv above.";
+  });
+}
+</script>
+</body>
+</html>
