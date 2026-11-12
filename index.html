@@ -90,8 +90,23 @@
     button:disabled { opacity: .5; cursor: default; }
     :focus-visible { outline: 3px solid #8862c0; outline-offset: 3px; }
     .actions { margin-top: 16px; }
-    #filePicker { margin-bottom: 18px; }
-    #filePicker input { max-width: 360px; }
+    #filePicker {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 2;
+    }
+    #openCsv {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      color: var(--cream);
+      background: var(--deep);
+      border-color: #e8e3d366;
+    }
+    #openCsv:hover { background: var(--purple); }
     #status, #advancedSummary, .meta { color: var(--muted); font-size: .9rem; }
     article { border-left: 4px solid var(--gold); overflow-wrap: anywhere; }
     article h2 { margin: 0; color: var(--deep); font: 600 1.45rem/1.4 Georgia, "AppleMyungjo", "Batang", serif; }
@@ -134,6 +149,26 @@
       .panel, article { padding: 16px; }
       .fields, dl { grid-template-columns: 1fr; }
     }
+    .catalogue-layout { display: grid; grid-template-columns: minmax(0, 1fr) 230px; gap: 20px; align-items: start; }
+    .sidebar { display: grid; gap: 12px; margin-top: 18px; }
+    .sidebar section { background: white; border: 1px solid var(--line); border-radius: 6px; padding: 12px; }
+    .sidebar h2 { font-size: 1rem; margin: 0 0 8px; }
+    .author-index { display: grid; grid-template-columns: repeat(auto-fit, minmax(28px, 1fr)); gap: 4px; }
+    .author-index button { min-height: 28px; padding: 2px; font-size: .85rem; color: var(--purple); background: white; }
+    .author-index button[aria-expanded="true"] { color: white; background: var(--purple); }
+    .author-index button:disabled { opacity: .4; }
+    .author-index + .author-list:not([hidden]) { margin-top: 8px; }
+    .author-list { list-style: none; margin: 0; padding: 0; max-height: 210px; overflow: auto; }
+    .author-list button { width: 100%; text-align: left; background: white; color: var(--purple); border: 0; padding: 5px 8px; overflow-wrap: anywhere; }
+    .author-list button:hover, .author-list button[aria-pressed="true"] { background: #efebf5; }
+    .selection-check { display: flex; align-items: center; gap: 8px; width: fit-content; }
+    .selection-check input { width: auto; accent-color: var(--purple); }
+    #authorFilter { overflow-wrap: anywhere; }
+    @media (max-width: 700px) {
+      .catalogue-layout { grid-template-columns: minmax(0, 1fr); }
+      .sidebar { grid-row: 1; }
+      .author-list { max-height: 115px; }
+    }
   </style>
 </head>
 <body>
@@ -155,14 +190,18 @@
       </defs>
       <rect width="100%" height="100%" fill="url(#latticePattern)"/>
     </svg>
+    <div id="filePicker" hidden>
+      <button id="openCsv" type="button" aria-label="Open catalogue CSV" title="Open catalogue CSV">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 19V5h6l2 3h10v2M3 19h16l3-8H6z"/>
+        </svg>
+      </button>
+      <input id="file" type="file" accept=".csv,text/csv" hidden>
+    </div>
   </header>
 
   <section class="panel" aria-label="Catalogue search">
-    <div id="filePicker" hidden>
-      <label>Open the catalogue CSV file
-        <input id="file" type="file" accept=".csv,text/csv">
-      </label>
-    </div>
     <div class="controls">
       <label class="search-field">Keyword
         <input id="query" type="search" placeholder="Search in English or Korean…">
@@ -197,13 +236,40 @@
     <p id="advancedSummary" hidden></p>
   </section>
 
+  <div class="catalogue-layout">
+    <div>
   <p id="status" role="status"></p>
+  <p id="authorFilter" hidden>
+    <span id="authorFilterName"></span>
+    <button id="clearAuthor" type="button" class="secondary">Clear author filter</button>
+  </p>
+  <label class="selection-check">
+    <input id="selectPage" type="checkbox" disabled> Select this page
+  </label>
   <section id="results" aria-label="Search results"></section>
   <nav aria-label="Result pages">
     <button id="prev" type="button" disabled>Previous</button>
     <span id="page"></span>
     <button id="next" type="button" disabled>Next</button>
   </nav>
+    </div>
+    <aside class="sidebar" aria-label="Browse authors and export">
+      <section>
+        <h2>Authors Korean</h2>
+        <div id="authorsKoIndex" class="author-index" role="group" aria-label="Korean author initials"></div>
+        <ul id="authorsKo" class="author-list" hidden lang="ko"></ul>
+      </section>
+      <section>
+        <h2>Authors English</h2>
+        <div id="authorsEnIndex" class="author-index" role="group" aria-label="English author initials"></div>
+        <ul id="authorsEn" class="author-list" hidden></ul>
+      </section>
+      <button id="exportSelected" type="button" disabled>Export Selected (0)</button>
+      <button id="clearSelection" type="button" class="secondary" disabled>Clear selection</button>
+      <button id="addRecord" class="secondary" type="button" hidden disabled>Add New Record</button>
+      <button id="downloadCatalogue" type="button" hidden>Download Updated CSV</button>
+    </aside>
+  </div>
 </main>
 
 <dialog id="advancedDialog" aria-labelledby="advancedTitle">
@@ -229,6 +295,20 @@
     <div class="actions dialog-actions">
       <button id="clearAdvanced" class="secondary" type="button">Clear Advanced Filters</button>
       <button type="submit">Search Catalogue</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="recordDialog" aria-labelledby="recordTitle">
+  <div class="dialog-heading">
+    <h2 id="recordTitle">Add New Record</h2>
+    <button id="closeRecord" type="button" aria-label="Close new record form">×</button>
+  </div>
+  <form id="recordForm">
+    <p class="meta">Enter at least one title. Download the updated CSV to keep and publish your additions.</p>
+    <div id="recordFields" class="fields"></div>
+    <div class="actions dialog-actions">
+      <button type="submit">Add Record</button>
     </div>
   </form>
 </dialog>
@@ -262,10 +342,29 @@ let page = 1;
 let loaded = false;
 let loadMessage = "";
 let filters = {};
+let catalogueHeaders = [];
+let originalCSV = "";
+let addedRows = [];
+let nextExportRow = 1;
+const recordForm = $("recordForm");
+const recordInput = name => recordForm.elements.namedItem(name);
+let authorFilter = null;
+let activeAuthorButton = null;
+const selectedRecords = new Set();
 
 function normalize(value) {
-  return String(value ?? "").normalize("NFKC").toLowerCase().trim()
+  return String(value ?? "").normalize("NFKC").toLowerCase()
+    .normalize("NFD")
+    .replace(/(\p{Script=Latin})\p{M}+/gu, "$1")
+    .normalize("NFC")
+    // Ignore hyphens and apostrophe variants when comparing search text.
+    .replace(/[\p{Dash_Punctuation}'‘’ʻʼ\u2212]/gu, "")
+    .trim()
     .replace(/(\p{Script=Hangul})\s+(?=\p{Script=Hangul})/gu, "$1");
+}
+
+function authorNameKey(value) {
+  return normalize(value).replace(/[\s\p{P}\p{S}]/gu, "");
 }
 
 function words(value) {
@@ -329,24 +428,46 @@ function loadCatalogue(text) {
       throw new Error("Unexpected column count in record " + (index + 1) + ".");
     }
     const data = Object.fromEntries(headers.map((header, i) => [header, row[i].trim()]));
-    const searchable = headers
-      .filter(header => header !== "Export Row" && !header.endsWith("URL"))
-      .map(header => normalize(data[header]));
-    return { data, searchable, year: parseYear(data.Year) };
+    return catalogueRecord(data, headers);
   });
 
+  records = nextRecords;
+  catalogueHeaders = headers;
+  originalCSV = text;
+  addedRows = [];
+  nextExportRow = records.reduce((max, record) => {
+    const row = Number(record.data["Export Row"]);
+    return Number.isSafeInteger(row) && row >= max ? row + 1 : max;
+  }, 1);
+  $("downloadCatalogue").hidden = true;
+  $("addRecord").disabled = false;
+  selectedRecords.clear();
+  authorFilter = null;
+  refreshCatalogueOptions();
+  loaded = true;
+  loadMessage = "";
+  search();
+}
+
+function catalogueRecord(data, headers) {
+  const searchable = headers
+    .filter(header => header !== "Export Row" && !header.endsWith("URL"))
+    .map(header => normalize(data[header]));
+  return { data, searchable, year: parseYear(data.Year) };
+}
+
+function refreshCatalogueOptions() {
   const selectedGenre = $("genre").value;
-  const genres = [...new Set(nextRecords.map(record => record.data.Genre).filter(Boolean))]
+  const genres = [...new Set(records.map(record => record.data.Genre).filter(Boolean))]
     .sort(collators.en.compare);
   $("genre").replaceChildren(
     new Option("All genres", ""),
     ...genres.map(genre => new Option(genre, genre))
   );
   $("genre").value = genres.includes(selectedGenre) ? selectedGenre : "";
-  records = nextRecords;
-  loaded = true;
-  loadMessage = "";
-  search();
+  activeAuthorButton = null;
+  renderAuthorList("authorsKo", "Author (Kor)", "ko");
+  renderAuthorList("authorsEn", "Author (Eng)", "en");
 }
 
 function matchesAdvanced(record) {
@@ -394,6 +515,7 @@ function search() {
 
   results = sortResults(records.filter(record =>
     (!genre || record.data.Genre === genre) &&
+    (!authorFilter || authorNameKey(record.data[authorFilter.column]) === authorFilter.key) &&
     terms.every(term => record.searchable.some(value => value.includes(term))) &&
     matchesAdvanced(record)
   ));
@@ -435,13 +557,156 @@ function addLink(container, label, address) {
   container.append(link);
 }
 
-function createRecordCard(data) {
+const koreanInitials = "ㄱㄱㄴㄷㄷㄹㅁㅂㅂㅅㅅㅇㅈㅈㅊㅋㅌㅍㅎ";
+
+function authorInitial(key, locale) {
+  const code = key.codePointAt(0);
+  if (locale === "ko") {
+    if (code >= 0xac00 && code <= 0xd7a3) {
+      return koreanInitials[Math.floor((code - 0xac00) / 588)];
+    }
+    if (code >= 0x1100 && code <= 0x1112) return koreanInitials[code - 0x1100];
+    return "#";
+  }
+  return /^[a-z]/.test(key) ? key[0].toUpperCase() : "#";
+}
+
+function renderAuthorList(id, column, locale) {
+  const namesByKey = new Map();
+  for (const record of records) {
+    const name = record.data[column];
+    const key = authorNameKey(name);
+    if (key && !namesByKey.has(key)) namesByKey.set(key, name);
+  }
+
+  const groups = new Map();
+  for (const [key, name] of [...namesByKey].sort((a, b) => collators[locale].compare(a[1], b[1]))) {
+    const initial = authorInitial(key, locale);
+    if (!groups.has(initial)) groups.set(initial, []);
+    groups.get(initial).push({ key, name });
+  }
+
+  const list = $(id);
+  const index = $(id + "Index");
+  const initials = locale === "ko" ? [...new Set(koreanInitials)] : [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+  if (groups.has("#")) initials.push("#");
+
+  function showGroup(initial) {
+    index.dataset.initial = initial;
+    for (const button of index.children) {
+      button.setAttribute("aria-expanded", String(button.dataset.initial === initial));
+    }
+    list.replaceChildren(...(groups.get(initial) ?? []).map(({ key, name }) => {
+      const item = element("li");
+      const button = element("button", name);
+      button.type = "button";
+      const active = authorFilter?.column === column && authorFilter.key === key;
+      button.setAttribute("aria-pressed", String(active));
+      if (active) activeAuthorButton = button;
+      button.addEventListener("click", () => {
+        if (button === activeAuthorButton) {
+          setAuthorFilter(null, null);
+        } else {
+          setAuthorFilter({ column, key, name }, button);
+        }
+      });
+      item.append(button);
+      return item;
+    }));
+    list.hidden = !initial;
+    list.scrollTop = 0;
+  }
+
+  index.replaceChildren(...initials.map(initial => {
+    const button = element("button", initial);
+    button.type = "button";
+    button.dataset.initial = initial;
+    button.disabled = !groups.has(initial);
+    button.setAttribute("aria-controls", id);
+    if (initial === "#") button.setAttribute("aria-label", "Other initials");
+    button.addEventListener("click", () => {
+      showGroup(index.dataset.initial === initial ? "" : initial);
+    });
+    return button;
+  }));
+  const previous = index.dataset.initial;
+  showGroup(groups.has(previous) ? previous : "");
+}
+
+function setAuthorFilter(filter, button) {
+  activeAuthorButton?.setAttribute("aria-pressed", "false");
+  activeAuthorButton = button;
+  activeAuthorButton?.setAttribute("aria-pressed", "true");
+  authorFilter = filter;
+  search();
+}
+
+function visibleRecords() {
+  const start = (page - 1) * pageSize;
+  return results.slice(start, start + pageSize);
+}
+
+function updateSelection() {
+  const visible = visibleRecords();
+  const checked = visible.filter(record => selectedRecords.has(record)).length;
+  $("selectPage").disabled = visible.length === 0;
+  $("selectPage").checked = checked > 0 && checked === visible.length;
+  $("selectPage").indeterminate = checked > 0 && checked < visible.length;
+  $("exportSelected").disabled = selectedRecords.size === 0;
+  $("clearSelection").disabled = selectedRecords.size === 0;
+  $("exportSelected").textContent = "Export Selected (" + selectedRecords.size + ")";
+}
+
+function csvCell(value, forSpreadsheet = true) {
+  let text = String(value ?? "");
+  // Treat formula-like text as text when opened in a spreadsheet.
+  if (forSpreadsheet && /^[\s\uFEFF]*[=+\-@]/u.test(text)) text = "'" + text;
+  return '"' + text.replaceAll('"', '""') + '"';
+}
+
+function exportSelected() {
+  if (!selectedRecords.size) return;
+  const rows = [catalogueHeaders.map(header => csvCell(header)).join(",")];
+  for (const { data } of selectedRecords) {
+    rows.push(catalogueHeaders.map(header => csvCell(data[header])).join(","));
+  }
+  downloadCSV("teal-selected-records.csv", ["\uFEFF", rows.join("\r\n"), "\r\n"]);
+}
+
+function downloadCSV(filename, contents) {
+  const file = new Blob(contents, {
+    type: "text/csv;charset=utf-8"
+  });
+  const url = URL.createObjectURL(file);
+  const link = element("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function createRecordCard(record) {
+  const { data } = record;
   const card = element("article");
   const title = data["Translation Title"] || data["Korean Title"];
   const author = data["Author (Eng)"] || data["Author (Kor)"];
   const heading = element("h2", title || "Untitled record");
   if (!data["Translation Title"] && data["Korean Title"]) heading.lang = "ko";
   card.append(heading);
+  const selection = element("label", undefined, "selection-check");
+  const checkbox = element("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = selectedRecords.has(record);
+  checkbox.setAttribute("aria-label", "Select " + heading.textContent);
+  checkbox.addEventListener("change", () => {
+    if (checkbox.checked) selectedRecords.add(record);
+    else selectedRecords.delete(record);
+    updateSelection();
+  });
+  selection.append(checkbox, element("span", "Select record"));
+  card.append(selection);
 
   if (data["Korean Title"] && data["Korean Title"] !== title) {
     const koreanTitle = element("div", data["Korean Title"]);
@@ -480,10 +745,10 @@ function createRecordCard(data) {
 
 function render() {
   const pageCount = Math.ceil(results.length / pageSize);
-  const start = (page - 1) * pageSize;
-  $("results").replaceChildren(
-    ...results.slice(start, start + pageSize).map(record => createRecordCard(record.data))
-  );
+  $("results").replaceChildren(...visibleRecords().map(createRecordCard));
+  $("authorFilter").hidden = !authorFilter;
+  $("authorFilterName").textContent = authorFilter ? "Author: " + authorFilter.name : "";
+  updateSelection();
 
   $("status").textContent = loadMessage || (
     loaded
@@ -560,6 +825,19 @@ $("clearAdvanced").addEventListener("click", () => {
   populateAdvancedForm();
   search();
 });
+$("clearAuthor").addEventListener("click", () => setAuthorFilter(null, null));
+$("selectPage").addEventListener("change", () => {
+  for (const record of visibleRecords()) {
+    if ($("selectPage").checked) selectedRecords.add(record);
+    else selectedRecords.delete(record);
+  }
+  render();
+});
+$("clearSelection").addEventListener("click", () => {
+  selectedRecords.clear();
+  render();
+});
+$("exportSelected").addEventListener("click", exportSelected);
 $("query").addEventListener("input", search);
 for (const id of ["genre", "sortBy", "sortOrder"]) {
   $(id).addEventListener("change", search);
@@ -572,6 +850,62 @@ $("next").addEventListener("click", () => {
   if (page * pageSize < results.length) page++;
   render();
 });
+
+$("addRecord").addEventListener("click", () => {
+  const fields = catalogueHeaders.filter(name => name !== "Export Row");
+  $("recordFields").replaceChildren(...fields.map(name => {
+    const label = element("label", name);
+    const input = element("input");
+    input.name = name;
+    if (name.endsWith("URL")) input.type = "url";
+    if (name === "Year") {
+      input.inputMode = "numeric";
+      input.pattern = "[0-9]{4}";
+      input.title = "Enter a four-digit year";
+    }
+    if (name === "Korean Title" || name === "Author (Kor)") input.lang = "ko";
+    label.append(input);
+    return label;
+  }));
+  $("recordDialog").showModal();
+});
+
+$("closeRecord").addEventListener("click", () => $("recordDialog").close());
+recordForm.addEventListener("input", () => {
+  recordInput("Translation Title").setCustomValidity("");
+});
+recordForm.addEventListener("submit", event => {
+  event.preventDefault();
+  const data = Object.fromEntries(catalogueHeaders.map(name => [
+    name, name === "Export Row" ? String(nextExportRow) : recordInput(name).value.trim()
+  ]));
+
+  if (!data["Translation Title"] && !data["Korean Title"]) {
+    const title = recordInput("Translation Title");
+    title.setCustomValidity("Enter a translation title or a Korean title.");
+    title.reportValidity();
+    return;
+  }
+
+  nextExportRow++;
+  records.push(catalogueRecord(data, catalogueHeaders));
+  addedRows.push(catalogueHeaders.map(name => csvCell(data[name], false)).join(","));
+  refreshCatalogueOptions();
+  $("recordDialog").close();
+  $("downloadCatalogue").hidden = false;
+  $("downloadCatalogue").textContent = "Download Updated CSV (" + addedRows.length + " added)";
+  search();
+  $("status").textContent = "Record added. " + $("status").textContent;
+});
+
+$("downloadCatalogue").addEventListener("click", () => {
+  if (!addedRows.length) return;
+  const bom = originalCSV.startsWith("\uFEFF") ? "" : "\uFEFF";
+  const separator = /[\r\n]$/.test(originalCSV) ? "" : "\r\n";
+  downloadCSV("data.csv", [bom, originalCSV, separator, addedRows.join("\r\n"), "\r\n"]);
+});
+
+$("openCsv").addEventListener("click", () => $("file").click());
 
 $("file").addEventListener("change", async event => {
   const file = event.target.files[0];
@@ -587,7 +921,8 @@ $("file").addEventListener("change", async event => {
 async function start() {
   if (location.protocol === "file:") {
     $("filePicker").hidden = false;
-    loadMessage = "Select data.csv to begin.";
+    $("addRecord").hidden = false;
+    loadMessage = "Use the folder icon to open data.csv.";
     render();
     return;
   }
@@ -600,10 +935,11 @@ async function start() {
     loadCatalogue(await response.text());
   } catch (error) {
     $("filePicker").hidden = false;
-    loadMessage = "Automatic loading failed. Select data.csv above. " + error.message;
+    loadMessage = "Automatic loading failed. Use the folder icon to open data.csv. " + error.message;
     render();
   }
 }
+
 start();
 </script>
 </body>
