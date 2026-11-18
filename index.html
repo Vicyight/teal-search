@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>English Translation of Korean Literature Search</title>
+  <title data-i18n="English Translation of Korean Literature Search">English Translation of Korean Literature Search</title>
   <meta name="description" content="Explore over 6,000 Korean literature translation records. Search English and Korean titles, authors, translators, publication years and genres.">
   <style>
     :root {
@@ -169,16 +169,125 @@
       .sidebar { grid-row: 1; }
       .author-list { max-height: 115px; }
     }
+    .exact-toggle {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 13px;
+      border: 1px solid #ded7e8;
+      border-radius: 999px;
+      background: #f7f4fb;
+      color: var(--deep);
+      cursor: pointer;
+      font-size: .88rem;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+    .exact-toggle input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: 0;
+      padding: 0;
+      opacity: 0;
+    }
+    .exact-track {
+      display: block;
+      width: 32px;
+      height: 18px;
+      flex-shrink: 0;
+      border: 1px solid #afa4bd;
+      border-radius: 999px;
+      background: #d6cfdf;
+    }
+    .exact-track::after {
+      content: "";
+      display: block;
+      width: 12px;
+      height: 12px;
+      margin: 2px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 1px 2px #30204c30;
+    }
+    .exact-toggle input:checked + .exact-track {
+      background: var(--purple);
+      border-color: var(--purple);
+    }
+    .exact-toggle input:checked + .exact-track::after {
+      transform: translateX(14px);
+      background: var(--cream);
+    }
+    .exact-toggle input:focus-visible + .exact-track {
+      outline: 3px solid var(--purple);
+      outline-offset: 4px;
+    }
+    @media (forced-colors: active) {
+      .exact-toggle input:checked + .exact-track { background: Highlight; }
+      .exact-track::after { background: CanvasText; }
+    }
+    .panel > .controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(160px, 25%);
+      gap: 18px;
+    }
+    .panel > .controls input,
+    .panel > .controls select { min-height: 48px; }
+    .search-toolbar {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 18px 24px;
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+    .sort-controls {
+      display: flex;
+      align-items: end;
+      flex-wrap: wrap;
+      gap: 12px;
+      flex: 1 1 300px;
+    }
+    .sort-controls label:first-child { flex: 1 1 170px; max-width: 240px; }
+    .sort-controls label:last-child { flex: 0 1 145px; }
+    .search-options {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .search-options #advanced {
+      min-height: 42px;
+      border-color: var(--purple);
+    }
+    @media (max-width: 600px) {
+      .panel > .controls { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+      .sort-controls { flex-basis: 100%; }
+      .sort-controls label:first-child { max-width: none; }
+      .search-options { width: 100%; justify-content: space-between; }
+    }
+    .language-bar { display: flex; justify-content: flex-end; gap: 4px; margin-bottom: 12px; }
+    .language-bar button { padding: 5px 12px; font-size: .84rem; color: var(--purple); background: transparent; border-color: transparent; border-radius: 999px; }
+    .language-bar button[aria-pressed="true"] { background: var(--purple); color: white; }
+    html[lang="ko"] h1 { font-family: "AppleMyungjo", "Batang", serif; line-height: 1.4; }
   </style>
 </head>
 <body>
 <main>
+  <div class="language-bar" role="group" aria-label="Interface language">
+    <button type="button" data-language="en" lang="en" aria-pressed="true">English</button>
+    <button type="button" data-language="ko" lang="ko" aria-pressed="false">한국어</button>
+  </div>
   <header class="hero">
     <div class="hero-copy">
-      <p class="eyebrow">University of Washington · Tateuchi East Asia Library</p>
-      <h1>English Translation of Korean Literature Search</h1>
+      <p class="eyebrow" data-i18n="University of Washington · Tateuchi East Asia Library">University of Washington · Tateuchi East Asia Library</p>
+      <h1 data-i18n="English Translation of Korean Literature Search">English Translation of Korean Literature Search</h1>
       <p class="korean" lang="ko">한국문학 · 세계와 만나다</p>
-      <p>Discover Korean Literature in English Translations. Search titles, authors, translators and publication information.</p>
+      <p data-i18n="Discover Korean Literature in English Translations. Search titles, authors, translators and publication information.">Discover Korean Literature in English Translations. Search titles, authors, translators and publication information.</p>
     </div>
     <svg class="lattice" aria-hidden="true" fill="none">
       <defs>
@@ -191,7 +300,7 @@
       <rect width="100%" height="100%" fill="url(#latticePattern)"/>
     </svg>
     <div id="filePicker" hidden>
-      <button id="openCsv" type="button" aria-label="Open catalogue CSV" title="Open catalogue CSV">
+      <button id="openCsv" type="button" aria-label="Open catalogue CSV" data-i18n-aria-label="Open catalogue CSV" title="Open catalogue CSV" data-i18n-title="Open catalogue CSV">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">
           <path d="M3 19V5h6l2 3h10v2M3 19h16l3-8H6z"/>
@@ -201,40 +310,46 @@
     </div>
   </header>
 
-  <section class="panel" aria-label="Catalogue search">
+  <section class="panel" aria-label="Catalogue search" data-i18n-aria-label="Catalogue search">
     <div class="controls">
-      <label class="search-field">Keyword
-        <input id="query" type="search" placeholder="Search in English or Korean…">
+      <label class="search-field"><span data-i18n="Keyword">Keyword</span>
+<input id="query" type="search" placeholder="Search in English or Korean…" data-i18n-placeholder="Search in English or Korean…">
       </label>
-      <label>Genre
-        <select id="genre"><option value="">All genres</option></select>
-      </label>
-      <label>Sort by
-        <select id="sortBy">
-          <option value="">Catalogue order</option>
-          <option>Translation Title</option>
-          <option>Korean Title</option>
-          <option value="Author (Eng)">Author (English)</option>
-          <option value="Author (Kor)">Author (Korean)</option>
-          <option>Translator</option>
-          <option value="Year">Publication year</option>
-          <option value="Source">Source title</option>
-          <option>Publisher</option>
-          <option>Genre</option>
-        </select>
-      </label>
-      <label>Order
-        <select id="sortOrder" disabled>
-          <option value="asc">Ascending</option>
-          <option value="desc">Descending</option>
-        </select>
+      <label><span data-i18n="Genre">Genre</span>
+<select id="genre"><option value="" data-i18n="All genres">All genres</option></select>
       </label>
     </div>
-    <div class="actions">
-      <label class="selection-check">
-        <input id="exactSearch" type="checkbox"> Exact match
+    <div class="search-toolbar">
+      <div class="sort-controls">
+      <label><span data-i18n="Sort by">Sort by</span>
+<select id="sortBy">
+          <option value="" data-i18n="Catalogue order">Catalogue order</option>
+          <option value="Translation Title" data-i18n="Translation Title">Translation Title</option>
+          <option value="Korean Title" data-i18n="Korean Title">Korean Title</option>
+          <option value="Author (Eng)" data-i18n="Author (English)">Author (English)</option>
+          <option value="Author (Kor)" data-i18n="Author (Korean)">Author (Korean)</option>
+          <option value="Translator" data-i18n="Translator">Translator</option>
+          <option value="Year" data-i18n="Publication year">Publication year</option>
+          <option value="Source" data-i18n="Source title">Source title</option>
+          <option value="Publisher" data-i18n="Publisher">Publisher</option>
+          <option value="Genre" data-i18n="Genre">Genre</option>
+        </select>
       </label>
-      <button id="advanced" class="secondary" type="button">Advanced Search</button>
+      <label><span data-i18n="Order">Order</span>
+<select id="sortOrder" disabled>
+          <option value="asc" data-i18n="Ascending">Ascending</option>
+          <option value="desc" data-i18n="Descending">Descending</option>
+        </select>
+      </label>
+      </div>
+      <div class="search-options">
+      <label class="exact-toggle">
+        <input id="exactSearch" type="checkbox" role="switch">
+        <span class="exact-track" aria-hidden="true"></span>
+        <span data-i18n="Exact match">Exact match</span>
+      </label>
+      <button id="advanced" class="secondary" type="button" data-i18n="Advanced Search">Advanced Search</button>
+      </div>
     </div>
     <p id="advancedSummary" hidden></p>
   </section>
@@ -244,74 +359,86 @@
   <p id="status" role="status"></p>
   <p id="authorFilter" hidden>
     <span id="authorFilterName"></span>
-    <button id="clearAuthor" type="button" class="secondary">Clear author filter</button>
+    <button id="clearAuthor" type="button" class="secondary" data-i18n="Clear author filter">Clear author filter</button>
   </p>
   <label class="selection-check">
-    <input id="selectPage" type="checkbox" disabled> Select this page
+    <input id="selectPage" type="checkbox" disabled> <span data-i18n="Select this page">Select this page</span>
   </label>
-  <section id="results" aria-label="Search results"></section>
-  <nav aria-label="Result pages">
-    <button id="prev" type="button" disabled>Previous</button>
+  <section id="results" aria-label="Search results" data-i18n-aria-label="Search results"></section>
+  <nav aria-label="Result pages" data-i18n-aria-label="Result pages">
+    <button id="prev" type="button" disabled data-i18n="Previous">Previous</button>
     <span id="page"></span>
-    <button id="next" type="button" disabled>Next</button>
+    <button id="next" type="button" disabled data-i18n="Next">Next</button>
   </nav>
     </div>
-    <aside class="sidebar" aria-label="Browse authors and export">
+    <aside class="sidebar" aria-label="Browse authors and export" data-i18n-aria-label="Browse authors and export">
       <section>
-        <h2>Authors (Korean)</h2>
-        <div id="authorsKoIndex" class="author-index" role="group" aria-label="Korean author initials"></div>
+        <h2 data-i18n="Authors (Korean)">Authors (Korean)</h2>
+        <div id="authorsKoIndex" class="author-index" role="group" aria-label="Korean author initials" data-i18n-aria-label="Korean author initials"></div>
         <ul id="authorsKo" class="author-list" hidden lang="ko"></ul>
       </section>
       <section>
-        <h2>Authors (Romanized)</h2>
-        <div id="authorsEnIndex" class="author-index" role="group" aria-label="Romanized author initials"></div>
+        <h2 data-i18n="Authors (Romanized)">Authors (Romanized)</h2>
+        <div id="authorsEnIndex" class="author-index" role="group" aria-label="Romanized author initials" data-i18n-aria-label="Romanized author initials"></div>
         <ul id="authorsEn" class="author-list" hidden></ul>
       </section>
-      <button id="exportSelected" type="button" disabled>Export Selected (0)</button>
-      <button id="clearSelection" type="button" class="secondary" disabled>Clear selection</button>
-      <button id="addRecord" class="secondary" type="button" hidden disabled>Add New Record</button>
-      <button id="downloadCatalogue" type="button" hidden>Download Updated CSV</button>
+      <button id="exportSelected" type="button" disabled data-i18n="Export Selected (0)">Export Selected (0)</button>
+      <button id="clearSelection" type="button" class="secondary" disabled data-i18n="Clear selection">Clear selection</button>
+      <button id="addRecord" class="secondary" type="button" hidden disabled data-i18n="Add New Record">Add New Record</button>
+      <button id="downloadCatalogue" type="button" hidden data-i18n="Download Updated CSV">Download Updated CSV</button>
     </aside>
   </div>
 </main>
 
 <dialog id="advancedDialog" aria-labelledby="advancedTitle">
   <div class="dialog-heading">
-    <h2 id="advancedTitle">Advanced Search</h2>
-    <button id="closeAdvanced" type="button" aria-label="Close advanced search">×</button>
+    <h2 id="advancedTitle" data-i18n="Advanced Search">Advanced Search</h2>
+    <button id="closeAdvanced" type="button" aria-label="Close advanced search" data-i18n-aria-label="Close advanced search">×</button>
   </div>
   <form id="advancedForm">
     <div class="fields">
-      <label class="wide">Keyword <input name="keyword" type="search"></label>
-      <label>Author Name (English) <input name="authorEng"></label>
-      <label>Author Name (Korean) <input name="authorKor" lang="ko"></label>
-      <label>Translation Title <input name="titleEng"></label>
-      <label>Korean Title <input name="titleKor" lang="ko"></label>
-      <label class="wide">Translator <input name="translator"></label>
-      <label>From Published Year <input name="yearFrom" type="number" min="1" max="9999"></label>
-      <label>To Published Year <input name="yearTo" type="number" min="1" max="9999"></label>
-      <label>Exact Published Year <input name="yearExact" type="number" min="1" max="9999"></label>
-      <label>Genre <select name="genre"></select></label>
-      <label class="wide">Source Title <input name="source"></label>
-      <label class="wide">Publisher <input name="publisher"></label>
+      <label class="wide"><span data-i18n="Keyword">Keyword</span>
+<input name="keyword" type="search"></label>
+      <label><span data-i18n="Author Name (English)">Author Name (English)</span>
+<input name="authorEng"></label>
+      <label><span data-i18n="Author Name (Korean)">Author Name (Korean)</span>
+<input name="authorKor" lang="ko"></label>
+      <label><span data-i18n="Translation Title">Translation Title</span>
+<input name="titleEng"></label>
+      <label><span data-i18n="Korean Title">Korean Title</span>
+<input name="titleKor" lang="ko"></label>
+      <label class="wide"><span data-i18n="Translator">Translator</span>
+<input name="translator"></label>
+      <label><span data-i18n="From Published Year">From Published Year</span>
+<input name="yearFrom" type="number" min="1" max="9999"></label>
+      <label><span data-i18n="To Published Year">To Published Year</span>
+<input name="yearTo" type="number" min="1" max="9999"></label>
+      <label><span data-i18n="Exact Published Year">Exact Published Year</span>
+<input name="yearExact" type="number" min="1" max="9999"></label>
+      <label><span data-i18n="Genre">Genre</span>
+<select name="genre"></select></label>
+      <label class="wide"><span data-i18n="Source Title">Source Title</span>
+<input name="source"></label>
+      <label class="wide"><span data-i18n="Publisher">Publisher</span>
+<input name="publisher"></label>
     </div>
     <div class="actions dialog-actions">
-      <button id="clearAdvanced" class="secondary" type="button">Clear Advanced Filters</button>
-      <button type="submit">Search Catalogue</button>
+      <button id="clearAdvanced" class="secondary" type="button" data-i18n="Clear Advanced Filters">Clear Advanced Filters</button>
+      <button type="submit" data-i18n="Search Catalogue">Search Catalogue</button>
     </div>
   </form>
 </dialog>
 
 <dialog id="recordDialog" aria-labelledby="recordTitle">
   <div class="dialog-heading">
-    <h2 id="recordTitle">Add New Record</h2>
-    <button id="closeRecord" type="button" aria-label="Close new record form">×</button>
+    <h2 id="recordTitle" data-i18n="Add New Record">Add New Record</h2>
+    <button id="closeRecord" type="button" aria-label="Close new record form" data-i18n-aria-label="Close new record form">×</button>
   </div>
   <form id="recordForm">
-    <p class="meta">Enter at least one title. Download the updated CSV to keep and publish your additions.</p>
+    <p class="meta" data-i18n="Enter at least one title. Download the updated CSV to keep and publish your additions.">Enter at least one title. Download the updated CSV to keep and publish your additions.</p>
     <div id="recordFields" class="fields"></div>
     <div class="actions dialog-actions">
-      <button type="submit">Add Record</button>
+      <button type="submit" data-i18n="Add Record">Add Record</button>
     </div>
   </form>
 </dialog>
@@ -354,6 +481,129 @@ const recordInput = name => recordForm.elements.namedItem(name);
 let authorFilter = null;
 let activeAuthorButton = null;
 const selectedRecords = new Set();
+
+const koreanUI = {
+  "English Translation of Korean Literature Search": "한국문학 영어 번역 작품 검색",
+  "University of Washington · Tateuchi East Asia Library": "워싱턴대학교 · 다테우치 동아시아도서관",
+  "Discover Korean Literature in English Translations. Search titles, authors, translators and publication information.": "영어로 번역된 한국문학을 만나보세요. 작품명, 저자, 번역자 및 출판 정보를 검색할 수 있습니다.",
+  "Keyword": "검색어",
+  "Genre": "장르",
+  "Sort by": "정렬 기준",
+  "Order": "정렬 순서",
+  "Catalogue order": "목록 순서",
+  "Translation Title": "영어 번역 제목",
+  "Korean Title": "한국어 제목",
+  "Author (English)": "저자명 (로마자)",
+  "Author (Korean)": "저자명 (한국어)",
+  "Author (Eng)": "저자명 (로마자)",
+  "Author (Kor)": "저자명 (한국어)",
+  "Author Name (English)": "저자명 (로마자)",
+  "Author Name (Korean)": "저자명 (한국어)",
+  "Translator": "번역자",
+  "Publication year": "출판 연도",
+  "Year": "출판 연도",
+  "Source title": "수록 자료명",
+  "Source Title": "수록 자료명",
+  "Source": "수록 자료명",
+  "Publisher": "출판사",
+  "Ascending": "오름차순",
+  "Descending": "내림차순",
+  "Exact match": "정확히 일치",
+  "Advanced Search": "상세 검색",
+  "Clear author filter": "저자 선택 해제",
+  "Select this page": "이 페이지 전체 선택",
+  "Previous": "이전",
+  "Next": "다음",
+  "Authors (Korean)": "저자 (한국어)",
+  "Authors (Romanized)": "저자 (로마자)",
+  "Export Selected (0)": "선택 항목 내보내기 (0)",
+  "Clear selection": "선택 해제",
+  "Add New Record": "새 서지 추가",
+  "Download Updated CSV": "업데이트된 CSV 다운로드",
+  "From Published Year": "출판 연도 시작",
+  "To Published Year": "출판 연도 종료",
+  "Exact Published Year": "특정 출판 연도",
+  "Clear Advanced Filters": "상세 검색 조건 초기화",
+  "Search Catalogue": "검색",
+  "Add Record": "추가",
+  "Enter at least one title. Download the updated CSV to keep and publish your additions.": "제목을 하나 이상 입력하세요. 추가한 서지를 저장하고 게시하려면 업데이트된 CSV를 다운로드하세요.",
+  "All genres": "모든 장르",
+  "Search in English or Korean…": "영어 또는 한국어로 검색…",
+  "Catalogue search": "서지 검색",
+  "Search results": "검색 결과",
+  "Result pages": "검색 결과 페이지",
+  "Browse authors and export": "저자 찾아보기 및 내보내기",
+  "Korean author initials": "한국어 저자 초성",
+  "Romanized author initials": "로마자 저자 첫 글자",
+  "Close advanced search": "상세 검색 닫기",
+  "Close new record form": "새 서지 입력 창 닫기",
+  "Open catalogue CSV": "서지 CSV 열기",
+  "Other initials": "기타",
+  "Untitled record": "제목 없음",
+  "Select record": "서지 선택",
+  "View record details": "서지 상세 정보",
+  "Search WorldCat": "WorldCat 검색",
+  "Search Google Books": "Google 도서 검색",
+  "Search Google": "Google 검색",
+  "Visit source": "원문 사이트",
+  "No matching records found.": "일치하는 서지가 없습니다.",
+  "Enter a four-digit year": "연도를 네 자리 숫자로 입력하세요",
+  "End year must be the same as or later than start year.": "종료 연도는 시작 연도와 같거나 이후여야 합니다.",
+  "Exact year must fall within the selected range.": "특정 연도는 선택한 범위 안에 있어야 합니다.",
+  "Enter a translation title or a Korean title.": "영어 번역 제목 또는 한국어 제목을 입력하세요.",
+  "Use the folder icon to open data.csv.": "폴더 아이콘을 눌러 data.csv를 여세요.",
+  "Loading catalogue…": "서지를 불러오는 중…",
+  "Record added. ": "서지를 추가했습니다. ",
+  "WorldCat URL": "WorldCat 링크",
+  "Google Books URL": "Google 도서 링크",
+  "Publisher URL": "출판사 링크",
+  "Export Selected ({count})": "선택 항목 내보내기 ({count})",
+  "Advanced Search ({count})": "상세 검색 ({count})",
+  "{count} advanced filters active.": "상세 검색 조건 {count}개 적용 중",
+  "{count} advanced filter active.": "상세 검색 조건 {count}개 적용 중",
+  "{results} results · {total} records": "검색 결과 {results}건 · 전체 {total}건",
+  "Author: {name}": "저자: {name}",
+  "Download Updated CSV ({count} added)": "업데이트된 CSV 다운로드 ({count}건 추가)",
+  "Select {title}": "{title} 선택"
+};
+let language = "en";
+try { language = localStorage.getItem("teal-language") === "ko" ? "ko" : "en"; } catch {}
+
+function t(key, values = {}) {
+  const template = language === "ko" ? koreanUI[key] || key : key;
+  return template.replace(/\{(\w+)\}/g, (match, name) => values[name] ?? match);
+}
+
+function translateInterface() {
+  document.documentElement.lang = language;
+  document.querySelectorAll("[data-i18n]").forEach(node => {
+    node.textContent = t(node.dataset.i18n);
+  });
+  for (const attribute of ["aria-label", "placeholder", "title"]) {
+    document.querySelectorAll("[data-i18n-" + attribute + "]").forEach(node => {
+      node.setAttribute(attribute, t(node.getAttribute("data-i18n-" + attribute)));
+    });
+  }
+  document.querySelectorAll("[data-language]").forEach(button => {
+    button.setAttribute("aria-pressed", String(button.dataset.language === language));
+  });
+  for (const select of [$("genre"), field("genre")]) {
+    if (select.options[0]) select.options[0].textContent = t("All genres");
+  }
+  updateDynamicLabels();
+  render();
+}
+
+function updateDynamicLabels() {
+  const count = Object.keys(filters).length;
+  $("advanced").textContent = count ? t("Advanced Search ({count})", {count}) : t("Advanced Search");
+  $("advancedSummary").textContent = count
+    ? t(count === 1 ? "{count} advanced filter active." : "{count} advanced filters active.", {count})
+    : "";
+  $("downloadCatalogue").textContent = addedRows.length
+    ? t("Download Updated CSV ({count} added)", {count: addedRows.length})
+    : t("Download Updated CSV");
+}
 
 function normalize(value, preserveWordSpaces = false) {
   const normalized = String(value ?? "").normalize("NFKC").toLowerCase()
@@ -478,7 +728,7 @@ function refreshCatalogueOptions() {
   const genres = [...new Set(records.map(record => record.data.Genre).filter(Boolean))]
     .sort(collators.en.compare);
   $("genre").replaceChildren(
-    new Option("All genres", ""),
+    new Option(t("All genres"), ""),
     ...genres.map(genre => new Option(genre, genre))
   );
   $("genre").value = genres.includes(selectedGenre) ? selectedGenre : "";
@@ -542,11 +792,8 @@ function search() {
   ));
 
   const count = Object.keys(filters).length;
-  $("advanced").textContent = count ? "Advanced Search (" + count + ")" : "Advanced Search";
   $("advancedSummary").hidden = count === 0;
-  $("advancedSummary").textContent = count
-    ? count + " advanced filter" + (count === 1 ? "" : "s") + " active."
-    : "";
+  updateDynamicLabels();
   page = 1;
   render();
 }
@@ -571,7 +818,7 @@ function safeURL(value) {
 function addLink(container, label, address) {
   const url = safeURL(address);
   if (!url) return;
-  const link = element("a", label);
+  const link = element("a", t(label));
   link.href = url;
   link.target = "_blank";
   link.rel = "noopener noreferrer";
@@ -644,7 +891,7 @@ function renderAuthorList(id, column, locale) {
     button.dataset.initial = initial;
     button.disabled = !groups.has(initial);
     button.setAttribute("aria-controls", id);
-    if (initial === "#") button.setAttribute("aria-label", "Other initials");
+    if (initial === "#") button.setAttribute("aria-label", t("Other initials"));
     button.addEventListener("click", () => {
       showGroup(index.dataset.initial === initial ? "" : initial);
     });
@@ -675,7 +922,7 @@ function updateSelection() {
   $("selectPage").indeterminate = checked > 0 && checked < visible.length;
   $("exportSelected").disabled = selectedRecords.size === 0;
   $("clearSelection").disabled = selectedRecords.size === 0;
-  $("exportSelected").textContent = "Export Selected (" + selectedRecords.size + ")";
+  $("exportSelected").textContent = t("Export Selected ({count})", {count: selectedRecords.size});
 }
 
 function csvCell(value, forSpreadsheet = true) {
@@ -713,20 +960,20 @@ function createRecordCard(record) {
   const card = element("article");
   const title = data["Translation Title"] || data["Korean Title"];
   const author = data["Author (Eng)"] || data["Author (Kor)"];
-  const heading = element("h2", title || "Untitled record");
+  const heading = element("h2", title || t("Untitled record"));
   if (!data["Translation Title"] && data["Korean Title"]) heading.lang = "ko";
   card.append(heading);
   const selection = element("label", undefined, "selection-check");
   const checkbox = element("input");
   checkbox.type = "checkbox";
   checkbox.checked = selectedRecords.has(record);
-  checkbox.setAttribute("aria-label", "Select " + heading.textContent);
+  checkbox.setAttribute("aria-label", t("Select {title}", {title: heading.textContent}));
   checkbox.addEventListener("change", () => {
     if (checkbox.checked) selectedRecords.add(record);
     else selectedRecords.delete(record);
     updateSelection();
   });
-  selection.append(checkbox, element("span", "Select record"));
+  selection.append(checkbox, element("span", t("Select record")));
   card.append(selection);
 
   if (data["Korean Title"] && data["Korean Title"] !== title) {
@@ -741,12 +988,12 @@ function createRecordCard(record) {
 
   const details = element("details");
   const list = element("dl");
-  details.append(element("summary", "View record details"));
+  details.append(element("summary", t("View record details")));
   for (const [key, value] of Object.entries(data)) {
     if (!value || key === "Export Row" || key.endsWith("URL")) continue;
     const description = element("dd", value);
     if (key === "Korean Title" || key === "Author (Kor)") description.lang = "ko";
-    list.append(element("dt", key), description);
+    list.append(element("dt", t(key)), description);
   }
   details.append(list);
   card.append(details);
@@ -768,16 +1015,16 @@ function render() {
   const pageCount = Math.ceil(results.length / pageSize);
   $("results").replaceChildren(...visibleRecords().map(createRecordCard));
   $("authorFilter").hidden = !authorFilter;
-  $("authorFilterName").textContent = authorFilter ? "Author: " + authorFilter.name : "";
+  $("authorFilterName").textContent = authorFilter ? t("Author: {name}", {name: authorFilter.name}) : "";
   updateSelection();
 
-  $("status").textContent = loadMessage || (
+  $("status").textContent = t(loadMessage) || (
     loaded
-      ? results.length.toLocaleString() + " results · " + records.length.toLocaleString() + " records"
+      ? t("{results} results · {total} records", {results: results.length.toLocaleString(), total: records.length.toLocaleString()})
       : ""
   );
   if (loaded && results.length === 0) {
-    $("results").append(element("p", "No matching records found."));
+    $("results").append(element("p", t("No matching records found.")));
   }
   $("page").textContent = pageCount ? page + " / " + pageCount : "";
   $("prev").disabled = page <= 1;
@@ -818,12 +1065,12 @@ form.addEventListener("submit", event => {
   const to = Number(field("yearTo").value);
   const exact = Number(field("yearExact").value);
   if (from && to && from > to) {
-    field("yearTo").setCustomValidity("End year must be the same as or later than start year.");
+    field("yearTo").setCustomValidity(t("End year must be the same as or later than start year."));
     form.reportValidity();
     return;
   }
   if (exact && ((from && exact < from) || (to && exact > to))) {
-    field("yearExact").setCustomValidity("Exact year must fall within the selected range.");
+    field("yearExact").setCustomValidity(t("Exact year must fall within the selected range."));
     form.reportValidity();
     return;
   }
@@ -875,14 +1122,17 @@ $("next").addEventListener("click", () => {
 $("addRecord").addEventListener("click", () => {
   const fields = catalogueHeaders.filter(name => name !== "Export Row");
   $("recordFields").replaceChildren(...fields.map(name => {
-    const label = element("label", name);
+    const label = element("label");
+    const caption = element("span", t(name));
+    caption.dataset.i18n = name;
+    label.append(caption);
     const input = element("input");
     input.name = name;
     if (name.endsWith("URL")) input.type = "url";
     if (name === "Year") {
       input.inputMode = "numeric";
       input.pattern = "[0-9]{4}";
-      input.title = "Enter a four-digit year";
+      input.title = t("Enter a four-digit year");
     }
     if (name === "Korean Title" || name === "Author (Kor)") input.lang = "ko";
     label.append(input);
@@ -903,7 +1153,7 @@ recordForm.addEventListener("submit", event => {
 
   if (!data["Translation Title"] && !data["Korean Title"]) {
     const title = recordInput("Translation Title");
-    title.setCustomValidity("Enter a translation title or a Korean title.");
+    title.setCustomValidity(t("Enter a translation title or a Korean title."));
     title.reportValidity();
     return;
   }
@@ -914,9 +1164,9 @@ recordForm.addEventListener("submit", event => {
   refreshCatalogueOptions();
   $("recordDialog").close();
   $("downloadCatalogue").hidden = false;
-  $("downloadCatalogue").textContent = "Download Updated CSV (" + addedRows.length + " added)";
+  $("downloadCatalogue").textContent = t("Download Updated CSV ({count} added)", {count: addedRows.length});
   search();
-  $("status").textContent = "Record added. " + $("status").textContent;
+  $("status").textContent = t("Record added. ") + $("status").textContent;
 });
 
 $("downloadCatalogue").addEventListener("click", () => {
@@ -961,6 +1211,16 @@ async function start() {
   }
 }
 
+for (const button of document.querySelectorAll("[data-language]")) {
+  button.addEventListener("click", () => {
+    language = button.dataset.language;
+    try { localStorage.setItem("teal-language", language); } catch {}
+    clearYearValidation();
+    recordInput("Translation Title")?.setCustomValidity("");
+    translateInterface();
+  });
+}
+translateInterface();
 start();
 </script>
 </body>
