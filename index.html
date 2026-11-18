@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TEAL Literature Search | Korean Literature in Translation</title>
+  <title>English Translation of Korean Literature Search</title>
   <meta name="description" content="Explore over 6,000 Korean literature translation records. Search English and Korean titles, authors, translators, publication years and genres.">
   <style>
     :root {
@@ -176,9 +176,9 @@
   <header class="hero">
     <div class="hero-copy">
       <p class="eyebrow">University of Washington · Tateuchi East Asia Library</p>
-      <h1>TEAL Literature Search</h1>
+      <h1>English Translation of Korean Literature Search</h1>
       <p class="korean" lang="ko">한국문학 · 세계와 만나다</p>
-      <p>Discover Korean literature in translation. Search titles, authors, translators and publication information.</p>
+      <p>Discover Korean Literature in English Translations. Search titles, authors, translators and publication information.</p>
     </div>
     <svg class="lattice" aria-hidden="true" fill="none">
       <defs>
@@ -231,6 +231,9 @@
       </label>
     </div>
     <div class="actions">
+      <label class="selection-check">
+        <input id="exactSearch" type="checkbox"> Exact match
+      </label>
       <button id="advanced" class="secondary" type="button">Advanced Search</button>
     </div>
     <p id="advancedSummary" hidden></p>
@@ -255,13 +258,13 @@
     </div>
     <aside class="sidebar" aria-label="Browse authors and export">
       <section>
-        <h2>Authors Korean</h2>
+        <h2>Authors (Korean)</h2>
         <div id="authorsKoIndex" class="author-index" role="group" aria-label="Korean author initials"></div>
         <ul id="authorsKo" class="author-list" hidden lang="ko"></ul>
       </section>
       <section>
-        <h2>Authors English</h2>
-        <div id="authorsEnIndex" class="author-index" role="group" aria-label="English author initials"></div>
+        <h2>Authors (Romanized)</h2>
+        <div id="authorsEnIndex" class="author-index" role="group" aria-label="Romanized author initials"></div>
         <ul id="authorsEn" class="author-list" hidden></ul>
       </section>
       <button id="exportSelected" type="button" disabled>Export Selected (0)</button>
@@ -352,15 +355,17 @@ let authorFilter = null;
 let activeAuthorButton = null;
 const selectedRecords = new Set();
 
-function normalize(value) {
-  return String(value ?? "").normalize("NFKC").toLowerCase()
+function normalize(value, preserveWordSpaces = false) {
+  const normalized = String(value ?? "").normalize("NFKC").toLowerCase()
     .normalize("NFD")
     .replace(/(\p{Script=Latin})\p{M}+/gu, "$1")
     .normalize("NFC")
     // Ignore hyphens and apostrophe variants when comparing search text.
     .replace(/[\p{Dash_Punctuation}'‘’ʻʼ\u2212]/gu, "")
-    .trim()
-    .replace(/(\p{Script=Hangul})\s+(?=\p{Script=Hangul})/gu, "$1");
+    .trim();
+  return preserveWordSpaces
+    ? normalized.replace(/\s+/gu, " ")
+    : normalized.replace(/(\p{Script=Hangul})\s+(?=\p{Script=Hangul})/gu, "$1");
 }
 
 function authorNameKey(value) {
@@ -449,11 +454,23 @@ function loadCatalogue(text) {
   search();
 }
 
+function exactKeywordPattern(query) {
+  const phrase = normalize(query, true);
+  if (!phrase) return null;
+  const literal = phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp("(?<![\\p{L}\\p{M}\\p{N}])" + literal + "(?![\\p{L}\\p{M}\\p{N}])", "u");
+}
+
 function catalogueRecord(data, headers) {
-  const searchable = headers
+  const fields = headers
     .filter(header => header !== "Export Row" && !header.endsWith("URL"))
-    .map(header => normalize(data[header]));
-  return { data, searchable, year: parseYear(data.Year) };
+    .map(header => data[header]);
+  return {
+    data,
+    searchable: fields.map(value => normalize(value)),
+    exactSearchable: fields.map(value => normalize(value, true)),
+    year: parseYear(data.Year)
+  };
 }
 
 function refreshCatalogueOptions() {
@@ -509,14 +526,18 @@ function sortResults(items) {
 }
 
 function search() {
-  const terms = words($("query").value);
+  const query = $("query").value;
+  const terms = words(query);
+  const exact = $("exactSearch").checked ? exactKeywordPattern(query) : null;
   const genre = $("genre").value;
   $("sortOrder").disabled = !$("sortBy").value;
 
   results = sortResults(records.filter(record =>
     (!genre || record.data.Genre === genre) &&
     (!authorFilter || authorNameKey(record.data[authorFilter.column]) === authorFilter.key) &&
-    terms.every(term => record.searchable.some(value => value.includes(term))) &&
+    (exact
+      ? record.exactSearchable.some(value => exact.test(value))
+      : terms.every(term => record.searchable.some(value => value.includes(term)))) &&
     matchesAdvanced(record)
   ));
 
@@ -839,7 +860,7 @@ $("clearSelection").addEventListener("click", () => {
 });
 $("exportSelected").addEventListener("click", exportSelected);
 $("query").addEventListener("input", search);
-for (const id of ["genre", "sortBy", "sortOrder"]) {
+for (const id of ["exactSearch", "genre", "sortBy", "sortOrder"]) {
   $(id).addEventListener("change", search);
 }
 $("prev").addEventListener("click", () => {
